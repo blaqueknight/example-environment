@@ -27,3 +27,4 @@ jobs:
           branch: update-${{ github.event.inputs.tag_name }}
           title: "Deploy version ${{ github.event.inputs.tag_name }}"
           body: "This PR updates the image to ${{ github.event.inputs.tag_name }}"
+          
