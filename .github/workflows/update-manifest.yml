@@ -1,0 +1,43 @@
+name: Update Rollout Manifest
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Version tag to deploy"
+        required: true
+      image:
+        description: "Container image base"
+        required: true
+
+jobs:
+  update-rollout:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout environment repo
+        uses: actions/checkout@v3
+
+      - name: Update rollout.yaml image tag
+        run: |
+          sed -i "s|\(image: .*\):.*$|\1:${{ github.event.inputs.tag_name }}|" applications/example-application/rollout.yaml
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git checkout -b update-${{ github.event.inputs.tag_name }}
+          git add applications/example-application/rollout.yaml
+          git commit -m "Update rollout to version ${{ github.event.inputs.tag_name }}"
+
+      - name: Push branch
+        run: |
+          git push origin update-${{ github.event.inputs.tag_name }}
+
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v5
+        with:
+          title: "Update rollout to ${{ github.event.inputs.tag_name }}"
+          body: "Automated update of rollout.yaml"
+          base: main
+          branch: update-${{ github.event.inputs.tag_name }}
